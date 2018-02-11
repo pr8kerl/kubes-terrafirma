@@ -1,0 +1,112 @@
+{
+  "nodes": [
+    {
+      "name": "k8s-kluster-environment-node1",
+      "fullPath": "/partition/k8s-kluster-environment-node1",
+      "partition": "partition",
+      "address": "192.168.100.10%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-node2",
+      "fullPath": "/partition/k8s-kluster-environment-node2",
+      "partition": "partition",
+      "address": "192.168.100.11%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-node3",
+      "fullPath": "/partition/k8s-kluster-environment-node3",
+      "partition": "partition",
+      "address": "192.168.100.12%3",
+      "monitor": "/Common/icmp"
+    }
+  ],
+  "pools": [
+    {
+      "name": "k8s-kluster-environment-80-pool",
+      "partition": "partition",
+      "fullPath": "/partition/k8s-kluster-environment-80-pool",
+      "monitor": "/Common/http",
+      "members": [
+        {
+          "name": "k8s-kluster-environment-node1:80",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node1:80",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-node2:80",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node2:80",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-node3:80",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node3:80",
+          "priorityGroup": 100
+        }
+      ]
+    },
+    {
+      "name": "k8s-kluster-environment-443-pool",
+      "partition": "partition",
+      "fullPath": "/partition/k8s-kluster-environment-443-pool",
+      "monitor": "/Common/https",
+      "members": [
+        {
+          "name": "k8s-kluster-environment-node1:443",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node1:443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-node2:443",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node2:443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-node3:443",
+          "partition": "partition",
+          "fullPath": "/partition/k8s-kluster-environment-node3:443",
+          "priorityGroup": 100
+        }
+      ]
+    }
+  ],
+  "virtuals": [
+    {
+      "name": "k8s-kluster-environment-443-vs",
+      "fullPath": "/partition/k8s-kluster-environment-443-vs",
+      "partition": "partition",
+      "destination": "/partition/192.168.200.10%3:443",
+      "pool": "/partition/k8s-kluster-environment-443-pool",
+      "profiles": [
+        {
+          "name": "tcp",
+          "partition": "Common",
+          "fullPath": "/Common/tcp",
+          "context": "all"
+        }
+      ]
+    },
+    {
+      "name": "k8s-kluster-environment-80-vs",
+      "fullPath": "/partition/k8s-kluster-environment-80-vs",
+      "partition": "partition",
+      "destination": "/partition/192.168.200.10%3:80",
+      "pool": "/partition/k8s-kluster-environment-80-pool",
+      "profiles": [
+        {
+          "name": "tcp",
+          "partition": "Common",
+          "fullPath": "/Common/tcp",
+          "context": "all"
+        }
+      ]
+    }
+  ]
+}
+

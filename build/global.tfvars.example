@@ -1,0 +1,17 @@
+vsphere_unverified_ssl = true
+vsphere_user = "vsphereusername"
+vsphere_domain = "AD_DOMAIN"
+vsphere_server = "vsphereserver.local.domain"
+vsphere_port = 443
+vsphere_datastore = "/vsphere/datastore/name"
+vsphere_resourcepool = "/vsphere/resource/pool"
+vsphere_datacenter = "datacenter"
+vsphere_cluster = "cluster"
+vsphere_template = "/vsphere/vm/template/kubernetes-base-vm-1.9-x86_64"
+vsphere_folderpath = "kubernetes"
+
+k8s_public_network_dns_servers = [ "192.168.1.50", "192.168.1.51" ]
+k8s_service_cidr = "10.96.0.0/12"
+k8s_podnetwork = "canal"
+k8s_podnetwork_cidr = "10.244.0.0/16"
+k8s_version = "v1.9.2"

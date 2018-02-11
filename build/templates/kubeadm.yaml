@@ -1,0 +1,14 @@
+apiVersion: kubeadm.k8s.io/v1alpha1
+kind: MasterConfiguration
+kubernetesVersion: ${k8s_version}
+cloudProvider: vsphere
+api:
+  advertiseAddress: ${k8s_master_ip}
+apiServerCertSANs:
+  - ${k8s_cluster_name}-${k8s_cluster_environment}-master1
+  - ${k8s_master_ip}
+networking:
+  podSubnet: ${k8s_podnetwork_cidr}
+nodeName: ${k8s_cluster_name}-${k8s_cluster_environment}-master1
+token: ${k8s_bootstrap_token}
+tokenTTL: 0s

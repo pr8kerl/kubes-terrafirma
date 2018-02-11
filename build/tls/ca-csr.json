@@ -1,0 +1,17 @@
+{
+  "CN": "kubernetes",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+			"OU": "terrafirma",
+			"O":  "MYOB Australia Pty Ltd",
+			"L":  "Silicon Cremorne",
+			"ST": "VIC",
+			"C":  "AU"
+    }
+  ]
+}
+

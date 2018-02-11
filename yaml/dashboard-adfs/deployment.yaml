@@ -1,0 +1,65 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard-adfs
+  name: kubernetes-dashboard-adfs
+  namespace: kube-system
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: "50%"
+      maxUnavailable: "50%"
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      k8s-app: kubernetes-dashboard-adfs
+  template:
+    metadata:
+      labels:
+        k8s-app: kubernetes-dashboard-adfs
+      annotations:
+        checksum/config: {{ .Env.CHECKSUM }}
+    spec:
+      serviceAccountName: kubernetes-dashboard-adfs
+      containers:
+      - name: kubernetes-dashboard
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.8.2
+        args:
+          - --heapster-host=http://heapster.kube-system:80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9090
+          initialDelaySeconds: 5
+          timeoutSeconds: 30
+      - name: openresty-oidc
+        image: myobplatform/openresty-oidc:1.0.0
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        env:
+          - name: OIDC_CLIENT_ID
+            value: {{ $config.dashboardADFS.oidcClientID }}
+          - name: SESSION_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: kube-dashboard-session-secret
+                key: secret
+        volumeMounts:
+          - name: openresty-conf
+            mountPath: /conf
+            readOnly: true
+        args:
+          - "-c"
+          - "/conf/nginx.conf"
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      volumes:
+        - name: openresty-conf
+          configMap:
+            name: dashboard-oidc-config

@@ -1,0 +1,52 @@
+---
+version: '3'
+services:
+  base: &base
+    build: .
+    volumes:
+      - ./build:/app
+      - /tmp:/tmp
+      - $HOME/.ssh:/root/.ssh
+    environment:
+      - PS1=[container]:\w> 
+    stdin_open: true
+    tty: true
+    working_dir: /app
+
+  terraform:
+    image: hashicorp/terraform:0.9.11
+    volumes:
+      - ./build:/app
+      - /tmp:/tmp
+      - $HOME/.ssh:/root/.ssh
+    stdin_open: true
+    tty: true
+    working_dir: /app
+    environment:
+      TF_VAR_k8s_root_password: ${TF_VAR_k8s_root_password}
+      TF_VAR_vsphere_password: ${TF_VAR_vsphere_password}
+
+  kubeadm:
+    build:
+      context: .
+      dockerfile: Dockerfile.kubeadm
+
+  tls:
+    <<: *base
+    volumes:
+      - ".:/app"
+    entrypoint: ./bin/certs.sh
+
+  f5er:
+    image: pr8kerl/f5er:v0.3.1
+    volumes:
+      - $HOME/.f5:/.f5
+      - ./f5:/f5
+
+  shell:
+    <<: *base
+    volumes:
+      - "$HOME/.kube:/root/.kube"
+      - "$HOME/.minikube:$HOME/.minikube"
+      - ".:/app"
+

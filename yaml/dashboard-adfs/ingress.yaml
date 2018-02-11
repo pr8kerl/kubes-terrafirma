@@ -1,0 +1,18 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-adfs
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  tls:
+  rules:
+  - host: {{ $config.dashboardADFS.dnsRecord }}
+    http:
+      paths:
+      - backend:
+          serviceName: kubernetes-dashboard-adfs
+          servicePort: 80

@@ -1,0 +1,7 @@
+---
+clusterShortName: terra
+clusterEnvironment: development
+
+dashboardADFS:
+  oidcClientID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  dnsRecord: dashboard.terrafirma.example.com

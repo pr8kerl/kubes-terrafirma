@@ -1,0 +1,20 @@
+FROM debian:stretch-slim
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq
+RUN apt-get install -y \
+    apt-transport-https \
+    apt-utils \
+    ca-certificates \
+    curl \
+    gnupg
+
+RUN curl -sL -o kubernetes.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg && apt-key add kubernetes.gpg && rm kubernetes.gpg
+ADD kubernetes.apt.list /etc/apt/sources.list.d/kubernetes.list
+RUN apt-get update -qq
+    
+# kubeadm postinstal scripts fail wanting systemctl :(
+RUN apt-get install -y kubeadm; exit 0;
+
+ENTRYPOINT [ "kubeadm" ]

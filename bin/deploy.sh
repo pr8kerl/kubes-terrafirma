@@ -11,7 +11,7 @@ die() {
 
 echo
 echo installing adfs-roles for $env
-gomplate -f yaml/adfs-roles/template.yaml -d config=yaml/${env}.datasource | kubectl apply -f -
+gomplate -f yaml/adfs-roles/template.yaml -d config=yaml/${env}.yaml | kubectl apply -f -
 
 echo
 echo installing heapster for $env

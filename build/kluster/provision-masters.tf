@@ -10,8 +10,7 @@
 
   "provisioner" "remote-exec" {
     "inline" = [
-			"hostnamectl set-hostname ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-master${count.index +1}",
-      "mkdir -p /etc/kubernetes/pki"
+			"hostnamectl set-hostname ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-master${count.index +1}"
     ]
   }
 

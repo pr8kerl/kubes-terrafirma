@@ -11,7 +11,10 @@ cat << EOF > /etc/docker/daemon.json
 }
 EOF
 
-systemctl start docker
+# install cfssl etc
+curl -sL -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+curl -sL -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+chmod 755 /usr/local/bin/cfssl /usr/local/bin/cfssljson
 
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -33,6 +36,11 @@ setenforce 0
 systemctl enable kubelet cat <<EOF >  /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
+EOF
+
+cat <<EOF > /etc/systemd/system/kubelet.service.d/20-cloud-provider.conf
+[Service]
+Environment="KUBELET_EXTRA_ARGS=--cloud-provider=vsphere"
 EOF
 
 # remove swap

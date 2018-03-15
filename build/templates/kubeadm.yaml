@@ -7,8 +7,24 @@ api:
 apiServerCertSANs:
   - ${k8s_cluster_name}-${k8s_cluster_environment}-master1
   - ${k8s_master_ip}
+apiServerExtraArgs:
+  oidc-issuer-url: ${k8s_oidc_issuer_url}
+  oidc-client-id: ${k8s_oidc_client_id}
+  oidc-username-claim: ${k8s_oidc_username_claim}
+  oidc-groups-claim: ${k8s_oidc_groups_claim}
+  cloud-config: /etc/vsphere/config
 networking:
   podSubnet: ${k8s_podnetwork_cidr}
 nodeName: ${k8s_cluster_name}-${k8s_cluster_environment}-master1
 token: ${k8s_bootstrap_token}
 tokenTTL: 0s
+apiServerExtraVolumes:
+- name: vsphere
+  hostPath: /etc/vsphere
+  mountPath: /etc/vsphere
+controllerManagerExtraVolumes:
+- name: vsphere
+  hostPath: /etc/vsphere
+  mountPath: /etc/vsphere
+controllerManagerExtraArgs:
+  cloud-config: /etc/vsphere/config

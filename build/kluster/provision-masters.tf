@@ -36,7 +36,7 @@
 
   "provisioner" "file" {
     "content" = "${data.template_file.cloudprovider.rendered}"
-    "destination" = "/etc/kubernetes/vsphere.conf"
+    "destination" = "/etc/vsphere/config"
   }
 
   "provisioner" "file" {

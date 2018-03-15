@@ -68,6 +68,8 @@ echo
 echo storage classes
 kubectl apply -f yaml/storage-class-thick.yaml
 kubectl apply -f yaml/storage-class-thin.yaml
+echo set default StorageClass to thin
+kubectl patch storageclass thin --patch '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
 echo
 echo traefik

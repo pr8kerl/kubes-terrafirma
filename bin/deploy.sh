@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 env=$1
 
@@ -21,7 +21,8 @@ echo
 echo installing dashboard-adfs for $env
 SECRET=`openssl rand -base64 32`
 echo secret=${SECRET} > ./.tmp
-kubectl create secret generic kube-dashboard-session-secret --from-env-file=./.tmp
+
+kubectl create secret generic kube-dashboard-session-secret -n kube-system --from-env-file=./.tmp
 export CHECKSUM=$(md5sum yaml/dashboard-adfs/config-map.yaml | cut -f 1 -d " ")
 for f in ./yaml/dashboard-adfs/*.yaml; do
   gomplate -f $f -d config=yaml/${env}.yaml | kubectl apply -f -

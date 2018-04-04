@@ -7,6 +7,7 @@ labels:
   template: application
 objects:
 - kind: ConfigMap
+  apiVersion: v1
   metadata:
     name: traefik-conf
     namespace: kube-system
@@ -30,6 +31,7 @@ objects:
           KeyFile = "/etc/ssl/traefik/tls.key"
 
 - kind: ServiceAccount
+  apiVersion: v1
   metadata:
     name: traefik-ingress-controller
     namespace: kube-system
@@ -131,6 +133,7 @@ objects:
           role: worker
 
 - kind: Service
+  apiVersion: v1
   metadata:
     name: traefik-ingress-service
     namespace: kube-system
@@ -150,6 +153,7 @@ objects:
     type: NodePort
 
 - kind: Service
+  apiVersion: v1
   metadata:
     name: traefik-web-ui
     namespace: kube-system
@@ -159,6 +163,7 @@ objects:
     ports:
     - port: 80
       targetPort: 8080
+
 - apiVersion: extensions/v1beta1
   kind: Ingress
   metadata:

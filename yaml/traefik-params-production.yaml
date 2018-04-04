@@ -1,3 +1,3 @@
 ---
-TRAEFIK_INGRESS_HOSTNAME: traefik.terra.platform.myob.com
+TRAEFIK_INGRESS_HOSTNAME: traefik.svcs.terra.platform.myob.com
 

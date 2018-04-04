@@ -1,0 +1,71 @@
+{
+  "nodes": [
+    {
+      "name": "k8s-kluster-environment-api-node1",
+      "fullPath": "/LAN/k8s-kluster-environment-api-node1",
+      "partition": "LAN",
+      "address": "192.168.100.141%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-api-node2",
+      "fullPath": "/LAN/k8s-kluster-environment-api-node2",
+      "partition": "LAN",
+      "address": "192.168.100.142%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-api-node3",
+      "fullPath": "/LAN/k8s-kluster-environment-api-node3",
+      "partition": "LAN",
+      "address": "192.168.100.143%3",
+      "monitor": "/Common/icmp"
+    }
+  ],
+  "pools": [
+    {
+      "name": "k8s-kluster-environment-api-6443-pool",
+      "partition": "LAN",
+      "fullPath": "/LAN/k8s-kluster-environment-api-6443-pool",
+      "monitor": "/Common/https",
+      "members": [
+        {
+          "name": "k8s-kluster-environment-api-node1:6443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-api-node1:6443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-api-node2:6443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-api-node2:6443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-api-node3:6443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-api-node3:6443",
+          "priorityGroup": 100
+        }
+      ]
+    }
+  ],
+  "virtuals": [
+    {
+      "name": "k8s-kluster-environment-api-6443-vs",
+      "fullPath": "/LAN/k8s-kluster-environment-api-6443-vs",
+      "partition": "LAN",
+      "destination": "/LAN/10.60.32.140%3:6443",
+      "pool": "/LAN/k8s-kluster-environment-api-6443-pool",
+      "profiles": [
+        {
+          "name": "tcp",
+          "partition": "Common",
+          "fullPath": "/Common/tcp",
+          "context": "all"
+        }
+      ]
+    }
+  ]
+}
+

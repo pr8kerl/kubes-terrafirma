@@ -64,6 +64,12 @@ variable "vsphere_folderpath" {
   description = "vsphere folder path to locate vms"
 }
 
+variable "etcd_version" {
+  type        = "string"
+  description = "version of etcd to use"
+  default = "v3.1.10"
+}
+
 variable "k8s_version" {
   type        = "string"
   description = "version of kubernetes hyperkube to use"
@@ -84,6 +90,16 @@ variable "k8s_cluster_name" {
 variable "k8s_cluster_environment" {
   type        = "string"
   description = "name of the k8s cluster environment"
+}
+
+variable "k8s_master_lb_ip" {
+  type        = "string"
+  description = "k8s api load balancer virtual ip address"
+}
+
+variable "k8s_master_lb_hostname" {
+	type        = "string"
+	description = "k8s api load balancer fqdn"
 }
 
 variable "k8s_master_count" {

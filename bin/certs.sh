@@ -39,6 +39,34 @@ genAdmin() {
   cd $cwd
 }
 
+genEtcd() {
+  echo "generate etcd client certificate for $environment"
+  [[ ! -d ./build/tls/${environment} ]] && mkdir ./build/tls/${environment}
+  cwd=`pwd`
+  cd ./build/tls/${environment}
+  cfssl gencert \
+    -ca=ca.pem \
+    -ca-key=ca-key.pem \
+    -config=../ca-config.json \
+    -profile=client \
+    ../etcd-csr.json | cfssljson -bare etcd
+  checkrc $?
+  cd $cwd
+}
+
+genServiceAccount() {
+  echo "generate service account token keypair for $environment"
+  [[ ! -d ./build/tls/${environment} ]] && mkdir ./build/tls/${environment}
+  cwd=`pwd`
+  cd ./build/tls/${environment}
+  openssl genrsa -out sa-key.pem 2048
+  checkrc $?
+  openssl rsa -in sa-key.pem -pubout -out sa.pem
+  checkrc $?
+  cd $cwd
+}
+
+
 main() {
 
   echo "cwd: `pwd`"
@@ -46,14 +74,17 @@ main() {
   [[ ! -f ./build/tls/ca-config.json ]] && die "please configure a ca config file: ./build/tls/ca-config.json"
   [[ ! -f ./build/tls/ca-csr.json ]] && die "please configure a ca csr file: ./build/tls/ca-csr.json"
   [[ ! -f ./build/tls/admin-csr.json ]] && die "please configure an admin csr file: ./build/tls/admin-csr.json"
+  [[ ! -f ./build/tls/etcd-csr.json ]] && die "please configure an etcd client csr file: ./build/tls/etcd-csr.json"
 
-  [[ ! -f ./build/tls/${environment}/ca-key.pem ]] || genCA
-  [[ ! -f ./build/tls/${environment}/admin-key.pem ]] || genAdmin
+  [[ ! -f ./build/tls/${environment}/ca-key.pem ]] && genCA
+  [[ ! -f ./build/tls/${environment}/admin-key.pem ]] && genAdmin
+  [[ ! -f ./build/tls/${environment}/etcd-key.pem ]] && genEtcd
+  [[ ! -f ./build/tls/${environment}/sa.pem ]] && genServiceAccount
 
 }
 
 
-shift
+#shift
 # getopts
 while :; do
   case $1 in

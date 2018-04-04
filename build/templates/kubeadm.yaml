@@ -5,17 +5,29 @@ cloudProvider: vsphere
 api:
   advertiseAddress: ${k8s_master_ip}
 apiServerCertSANs:
-  - ${k8s_cluster_name}-${k8s_cluster_environment}-master1
-  - ${k8s_master_ip}
+  - ${k8s_master_lb_ip}
+  - ${k8s_master_ip0}
+  - ${k8s_master_ip1}
+  - ${k8s_master_ip2}
+  - ${k8s_master_lb_hostname}
 apiServerExtraArgs:
   oidc-issuer-url: ${k8s_oidc_issuer_url}
   oidc-client-id: ${k8s_oidc_client_id}
   oidc-username-claim: ${k8s_oidc_username_claim}
   oidc-groups-claim: ${k8s_oidc_groups_claim}
-  cloud-config: /etc/vsphere/config
+  endpoint-reconciler-type: lease
+  requestheader-allowed-names:
+etcd:
+  endpoints:
+  - https://${k8s_master_ip0}:2379
+  - https://${k8s_master_ip1}:2379
+  - https://${k8s_master_ip2}:2379
+  caFile: /etc/kubernetes/pki/etcd/ca.pem
+  certFile: /etc/kubernetes/pki/etcd/client.pem
+  keyFile: /etc/kubernetes/pki/etcd/client-key.pem
 networking:
   podSubnet: ${k8s_podnetwork_cidr}
-nodeName: ${k8s_cluster_name}-${k8s_cluster_environment}-master1
+nodeName: ${k8s_master_hostname}
 token: ${k8s_bootstrap_token}
 tokenTTL: 0s
 apiServerExtraVolumes:

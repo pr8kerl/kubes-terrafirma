@@ -4,6 +4,8 @@
 
 A project to assist in provisioning kubernetes on vsphere.
 
+Now with multiple kubernetes masters - etcd included.
+
 It uses terraform and kubeadm.
 
 ## How?
@@ -27,10 +29,10 @@ It uses terraform and kubeadm.
   vi build/global.tfvars  build/<environment name>.tfvars
   ```
 
-* generate ca cert and cluster admin cert
+* generate ca cert and other common keys/certs
 
   ```
-  make ca-<environment name> clustername=<cluster name that matches terraform variable k8s_cluster_name>
+  make certs-<environment name>
   ```
 
 * set some sensitive info as environment variables for terraform to pickup
@@ -45,13 +47,13 @@ It uses terraform and kubeadm.
 * see if the terraform gods are smiling
 
   ```
-  make plan-<environment name>
+  make plan-<environment name> clustername=<insert pet cluster name here>
   ```
 
 * build a k8s cluster
 
   ```
-  make apply-<environment name>
+  make apply-<environment name> clustername=<insert pet cluster name here>
   ```
 
 * destroy a k8s cluster
@@ -63,11 +65,14 @@ It uses terraform and kubeadm.
 ## Load Balancer??
 
 You will probably want a load balancer to manage traffic to your ingress controller for your apps.
+
+You will probably want a load balancer to manage traffic to your k8s api masters.
+
 Or if your ingress controller is a daemonset and uses a NodePort service using ports 80 and 443, then you can probably get away with round robin dns pointing to all your nodes.
 
 If you have an f5, you can use [f5er](https://github.com/pr8kerl/f5er) to create the required F5 resources.
 
-* Copy the file **f5/example-environment.json** to **<envirnment>.json** and adjeust the settings.
+* Copy the file **f5/example-environment-apps.json** to **<environment>.json** and adjust the settings.
 
 * Configure your F5 credentials in a config file
 

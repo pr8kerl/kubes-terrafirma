@@ -8,11 +8,12 @@
     "password" = "${var.k8s_root_password}"
   }
 
-  "depends_on" = ["vsphere_virtual_machine.kubevm"]
+  "depends_on" = ["null_resource.cluster-init"]
 
   "provisioner" "remote-exec" {
     "inline" = [
-			"hostnamectl set-hostname ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index +1}"
+      "hostnamectl set-hostname ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index}",
+      "mkdir -p /etc/kubernetes/pki"
     ]
   }
 
@@ -28,7 +29,7 @@
 
   "provisioner" "remote-exec" {
     "inline" = [
-			"bash /etc/kubernetes/provision.sh ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index + 1}"
+			"bash /etc/kubernetes/provision.sh ${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index}"
 		]
   }
 

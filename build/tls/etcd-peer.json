@@ -1,0 +1,18 @@
+{
+    "CN": "HOSTN",
+    "hosts": [
+        "IPADDR"
+    ],
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+			    "OU": "terrafirma",
+			    "L":  "Silicon Cremorne",
+			    "ST": "VIC",
+			    "C":  "AU"
+        }
+    ]
+}

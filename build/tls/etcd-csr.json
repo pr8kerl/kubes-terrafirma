@@ -1,0 +1,15 @@
+{
+  "CN": "etcd",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+			"OU": "terrafirma",
+			"L":  "Silicon Cremorne",
+			"ST": "VIC",
+			"C":  "AU"
+    }
+  ]
+}

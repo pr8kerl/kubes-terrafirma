@@ -1,0 +1,112 @@
+{
+  "nodes": [
+    {
+      "name": "k8s-kluster-environment-apps-node1",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-node1",
+      "partition": "LAN",
+      "address": "192.168.100.161%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-apps-node2",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-node2",
+      "partition": "LAN",
+      "address": "192.168.100.162%3",
+      "monitor": "/Common/icmp"
+    },
+    {
+      "name": "k8s-kluster-environment-apps-node3",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-node3",
+      "partition": "LAN",
+      "address": "192.168.100.163%3",
+      "monitor": "/Common/icmp"
+    }
+  ],
+  "pools": [
+    {
+      "name": "k8s-kluster-environment-apps-80-pool",
+      "partition": "LAN",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-80-pool",
+      "monitor": "/Common/http",
+      "members": [
+        {
+          "name": "k8s-kluster-environment-apps-node1:80",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node1:80",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-apps-node2:80",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node2:80",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-apps-node3:80",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node3:80",
+          "priorityGroup": 100
+        }
+      ]
+    },
+    {
+      "name": "k8s-kluster-environment-apps-443-pool",
+      "partition": "LAN",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-443-pool",
+      "monitor": "/Common/https",
+      "members": [
+        {
+          "name": "k8s-kluster-environment-apps-node1:443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node1:443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-apps-node2:443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node2:443",
+          "priorityGroup": 100
+        },
+        {
+          "name": "k8s-kluster-environment-apps-node3:443",
+          "partition": "LAN",
+          "fullPath": "/LAN/k8s-kluster-environment-apps-node3:443",
+          "priorityGroup": 100
+        }
+      ]
+    }
+  ],
+  "virtuals": [
+    {
+      "name": "k8s-kluster-environment-apps-443-vs",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-443-vs",
+      "partition": "LAN",
+      "destination": "/LAN/192.168.100.160%3:443",
+      "pool": "/LAN/k8s-kluster-environment-apps-443-pool",
+      "profiles": [
+        {
+          "name": "tcp",
+          "partition": "Common",
+          "fullPath": "/Common/tcp",
+          "context": "all"
+        }
+      ]
+    },
+    {
+      "name": "k8s-kluster-environment-apps-80-vs",
+      "fullPath": "/LAN/k8s-kluster-environment-apps-80-vs",
+      "partition": "LAN",
+      "destination": "/LAN/192.168.100.160%3:80",
+      "pool": "/LAN/k8s-kluster-environment-apps-80-pool",
+      "profiles": [
+        {
+          "name": "tcp",
+          "partition": "Common",
+          "fullPath": "/Common/tcp",
+          "context": "all"
+        }
+      ]
+    }
+  ]
+}
+

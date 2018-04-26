@@ -1,11 +1,13 @@
 {{ $config := (datasource "config") }}
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   labels:
-    k8s-app: kubernetes-dashboard-adfs
-  name: kubernetes-dashboard-adfs
+    app: kubernetes-dashboard-oidc
+    repo: ops-kube-system
+    deployed-with: gomplate
+  name: kubernetes-dashboard-oidc
   namespace: kube-system
 spec:
   strategy:
@@ -16,20 +18,20 @@ spec:
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      k8s-app: kubernetes-dashboard-adfs
+      app: kubernetes-dashboard-oidc
+      repo: ops-kube-system
   template:
     metadata:
       labels:
-        k8s-app: kubernetes-dashboard-adfs
+        app: kubernetes-dashboard-oidc
+        repo: ops-kube-system
       annotations:
-        checksum/config: {{ .Env.CHECKSUM }}
+        checksum/config: '{{ file.Read "yaml/dashboard-oidc/config-map.yaml" | regexp.Replace "\\s" "" | base64.Encode | printf "%s" }}'
     spec:
-      serviceAccountName: kubernetes-dashboard-adfs
+      serviceAccountName: kubernetes-dashboard-oidc
       containers:
       - name: kubernetes-dashboard
-        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.8.2
-        args:
-          - --heapster-host=http://heapster.kube-system:80
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.8.3
         livenessProbe:
           httpGet:
             path: /
@@ -43,7 +45,9 @@ spec:
           protocol: TCP
         env:
           - name: OIDC_CLIENT_ID
-            value: {{ $config.dashboardADFS.oidcClientID }}
+            value: "{{ $config.dex.clientId }}"
+          - name: OIDC_CLIENT_SECRET
+            value: "{{ $config.dex.clientSecret }}"
           - name: SESSION_SECRET
             valueFrom:
               secretKeyRef:
@@ -62,4 +66,4 @@ spec:
       volumes:
         - name: openresty-conf
           configMap:
-            name: dashboard-oidc-config
+            name: dashboard-oidc-openresty

@@ -1,44 +1,26 @@
 #!/bin/bash
 
-environment=$1
-traefik_hostname=traefik.svcs.terra.platform.myobdev.com
+clustername=$1
+traefik_hostname=traefik.svcs.$clustername
 
-if [ -z "${environment}" ]
+if [ -z "${clustername}" ]
 then
-  echo "gimme an environment pls: development | production "
+  echo "gimme a clustername pls"
   exit 1
 fi
 
 
-case $environment in
-  dev*)
-    environment="development"
-    traefik_hostname="traefik.svcs.terra.platform.myobdev.com"
-    ;;
-  prod*)
-    environment="development"
-    traefik_hostname="traefik.terra.platform.myob.com"
-    traefik_hostname="traefik.svcs.terra.platform.myob.com"
-    ;;
-  *)
-    echo "invalid environment provided: $environment"
-    echo "need: development | production"
-    exit 1
-    ;;
-  
-esac
-
 context=`kubectl config current-context`
-if [ "${context}" != "terra-${environment}" ]
+if [ "${context}" != "${clustername}" ]
 then
-    echo "invalid environment provided: $environment"
-    echo "need: development | production"
+    echo "invalid cluster name provided: $clustername"
+    echo "need: ${context}"
     exit 1
 fi
 
-if [ ! -f terra-${environment}.crt -o ! -f terra-${environment}.key ]
+if [ ! -f ${clustername}.crt -o ! -f ${clustername}.key ]
 then
-  echo "gimme some certificate files: terra-${environment}.crt, terra-${environment}.key"
+  echo "gimme some certificate files: ${clustername}.crt, ${clustername}.key"
   exit 1
 fi
 
@@ -63,9 +45,6 @@ do
 
 done
 
-echo 
-echo loading up tls secret
-kubectl create secret tls traefik-terra-tls --cert=terra-${environment}.crt --key=terra-${environment}.key -n kube-system
 echo
 echo storage classes
 kubectl apply -f yaml/storage-class-thick.yaml
@@ -73,12 +52,23 @@ kubectl apply -f yaml/storage-class-thin.yaml
 echo set default StorageClass to thin
 kubectl patch storageclass thin --patch '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
+echo 
+echo loading up traefik tls secret
+kubectl create secret tls traefik-terra-tls --cert=${clustername}.crt --key=${clustername}.key -n kube-system
+
 echo
 echo traefik
+if [ ! -f yaml/traefik.${clustername}.yaml ]
+then
+  echo "gimme some traefik parameter files love: yaml/traefik.${clustername}.yaml"
+  exit 1
+fi
 #echo docker-compose run ktmpl -f yaml/traefik-params-${environment}.yaml yaml/traefik.yaml
 #docker-compose run ktmpl -f yaml/traefik-params-${environment}.yaml yaml/traefik.yaml | kubectl apply -f -
-ktmpl -f yaml/traefik-params-${environment}.yaml yaml/traefik.yaml | kubectl apply -f -
+ktmpl -f yaml/traefik.${clustername}.yaml yaml/traefik.yaml | kubectl apply -f -
 
+echo
+echo helm
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
@@ -89,7 +79,7 @@ metadata:
 
 ---
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
     name: tiller-kube-system
 subjects:
@@ -103,7 +93,6 @@ roleRef:
 EOF
 
 helm init --upgrade --tiller-namespace kube-system --service-account tiller
-
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
@@ -114,7 +103,7 @@ metadata:
 
 ---
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
     name: tiller-default
 subjects:
@@ -129,36 +118,38 @@ EOF
 
 helm init --upgrade --tiller-namespace default --service-account tiller
 
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.8.3/src/deploy/recommended/kubernetes-dashboard.yaml
+echo
+echo deploy example kuard app 
+for f in ./yaml/kuard/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}.yaml | kubectl apply -f -
+done
 
-cat <<EOF | kubectl apply -f -
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kubernetes-dashboard
-  namespace: kube-system
-
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: kubernetes-dashboard
-  labels:
-    k8s-app: kubernetes-dashboard
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-
-subjects:
-  - kind: ServiceAccount
-    name: kubernetes-dashboard
-    namespace: kube-system
-EOF
-
-TKN_SCRT=`kubectl get secret -n kube-system -o name|grep kubernetes-dashboard-token`
+echo auth
+kubectl create ns auth
 
 echo
-echo dashboard token is:
-kubectl describe -n kube-system $TKN_SCRT|grep token:
+echo installing oidc-roles for $clustername
+gomplate -f yaml/oidc-roles/template.yaml -d config=yaml/params-${clustername}.yaml | kubectl apply -f -
+
+echo
+echo installing heapster for $clustername
+kubectl apply -f yaml/heapster/heapster.yaml
+
+echo
+echo installing dashboard-oidc for $clustername
+SECRET=`openssl rand -base64 32`
+echo secret=${SECRET} > ./.tmp
+
+kubectl create secret generic kube-dashboard-session-secret -n kube-system --from-env-file=./.tmp
+
+for f in ./yaml/dashboard-oidc/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/kubernetes-dashboard-oidc -n kube-system
+
+for f in ./yaml/dex/*.yml; do
+  gomplate -f $f -d config=yaml/params-${clustername}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/dex -n auth
+
+echo all done

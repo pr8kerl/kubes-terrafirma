@@ -1,0 +1,9 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: ca
+  namespace: auth
+data:
+  ca.pem: |
+{{ file.Read "oidc-ca.pem" | strings.Indent 4 }}

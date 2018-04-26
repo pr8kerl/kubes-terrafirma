@@ -87,6 +87,11 @@ variable "k8s_cluster_name" {
   description = "name of the k8s cluster"
 }
 
+variable "k8s_cluster_fqdn" {
+  type        = "string"
+  description = "fqdn of the k8s cluster"
+}
+
 variable "k8s_cluster_environment" {
   type        = "string"
   description = "name of the k8s cluster environment"
@@ -184,12 +189,18 @@ variable "k8s_oidc_client_id" {
 variable "k8s_oidc_username_claim" {
   type        = "string"
   description = "k8s oidc username claim"
-  default = "upn"
+  default = "email"
 }
 
 variable "k8s_oidc_groups_claim" {
   type        = "string"
   description = "k8s oidc groups claim"
-  default = "group"
+  default = "groups"
+}
+
+variable "k8s_oidc_ca_file" {
+  type        = "string"
+  description = "k8s oidc ca file"
+  default = "/etc/kubernetes/pki/oidc-ca.pem"
 }
 

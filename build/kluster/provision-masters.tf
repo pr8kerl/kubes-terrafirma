@@ -52,6 +52,11 @@
   }
 
   "provisioner" "file" {
+    "source" = "tls/${var.k8s_cluster_environment}/oidc-ca.pem"
+    "destination" = "/etc/kubernetes/pki/oidc-ca.pem"
+  }
+
+  "provisioner" "file" {
     "source" = "tls/${var.k8s_cluster_environment}/ca.pem"
     "destination" = "/etc/kubernetes/pki/etcd/ca.pem"
   }

@@ -1,0 +1,25 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-oidc
+  namespace: kube-system
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
+    kubernetes.io/tls-acme: "true"
+  labels:
+    app: kubernetes-dashboard-oidc
+    repo: ops-kube-system
+    deployed-with: gomplate
+spec:
+  tls:
+    - hosts:
+      - {{ $config.dashboard.dnsRecord }}
+  rules:
+  - host: {{ $config.dashboard.dnsRecord }}
+    http:
+      paths:
+      - backend:
+          serviceName: kubernetes-dashboard-oidc
+          servicePort: 80

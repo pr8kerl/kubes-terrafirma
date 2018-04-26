@@ -1,0 +1,14 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-ldap
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: Group
+    name: kubernetes-{{ $config.clusterShortName }}-{{ $config.clusterEnvironment }}-admin

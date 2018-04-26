@@ -1,0 +1,18 @@
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kubernetes-dashboard-oidc
+  namespace: kube-system
+  labels:
+    app: kubernetes-dashboard-oidc
+    repo: ops-kube-system
+    deployed-with: gomplate
+subjects:
+- kind: ServiceAccount
+  name: kubernetes-dashboard-oidc
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubernetes-dashboard-oidc

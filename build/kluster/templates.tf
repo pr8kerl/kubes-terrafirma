@@ -56,6 +56,7 @@ data "template_file" "kubeadmcfg" {
     "k8s_oidc_client_id" = "${var.k8s_oidc_client_id}"
     "k8s_oidc_username_claim" = "${var.k8s_oidc_username_claim}"
     "k8s_oidc_groups_claim" = "${var.k8s_oidc_groups_claim}"
+    "k8s_oidc_ca_file" = "${var.k8s_oidc_ca_file}"
   }
 }
 
@@ -79,6 +80,7 @@ data "template_file" "etcdservice" {
   "template" = "${file("./templates/kubeconfig.json")}"
   "vars" = {
     "k8s_cluster_name" = "${var.k8s_cluster_name}"
+    "k8s_cluster_fqdn" = "${var.k8s_cluster_fqdn}"
     "k8s_cluster_environment" = "${var.k8s_cluster_environment}"
     "k8s_master_lb_hostname" = "${var.k8s_master_lb_hostname}"
     "root_pem" = "${base64encode(data.template_file.ca_pem.rendered)}"

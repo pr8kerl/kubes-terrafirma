@@ -11,7 +11,7 @@ RUN apt-get install -y \
     gnupg
 
 RUN curl -sL -o kubernetes.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg && apt-key add kubernetes.gpg && rm kubernetes.gpg
-ADD kubernetes.apt.list /etc/apt/sources.list.d/kubernetes.list
+RUN echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" >/etc/apt/sources.list.d/kubernetes.list
 RUN apt-get update -qq
     
 # kubeadm postinstal scripts fail wanting systemctl :(

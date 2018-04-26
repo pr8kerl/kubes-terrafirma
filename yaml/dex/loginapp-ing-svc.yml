@@ -1,0 +1,37 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loginapp
+  namespace: auth
+spec:
+  ports:
+  - name: loginapp
+    port: 5555
+    protocol: TCP
+    targetPort: 5555
+  selector:
+    app: loginapp
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: loginapp
+  namespace: auth
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+spec:
+  rules:
+    - host: {{ $config.loginapp.dnsRecord }}
+      http:
+        paths:
+          - backend:
+              serviceName: loginapp
+              servicePort: 5555
+            path: /
+  tls:
+    - hosts:
+        - {{ $config.loginapp.dnsRecord }}

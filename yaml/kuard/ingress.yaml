@@ -3,16 +3,16 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: kubernetes-dashboard-adfs
-  namespace: kube-system
+  name: kuard
+  namespace: default
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
   tls:
   rules:
-  - host: {{ $config.dashboardADFS.dnsRecord }}
+  - host: {{ $config.kuard.dnsRecord }}
     http:
       paths:
       - backend:
-          serviceName: kubernetes-dashboard-adfs
-          servicePort: 80
+          serviceName: kuard
+          servicePort: 8080

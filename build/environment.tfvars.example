@@ -1,4 +1,5 @@
 k8s_cluster_name = "kluster"
+k8s_cluster_fqdn = "kluster.example.com"
 k8s_cluster_environment = "development"
 k8s_master_count = 3
 k8s_master_ips = [ "192.168.100.100", "192.168.100.101", "192.168.100.102" ]
@@ -9,7 +10,9 @@ k8s_node_ips = [ "192.168.100.110", "192.168.100.111", "192.168.100.112" ]
 k8s_public_network_gateway = "192.168.100.1"
 k8s_public_network_cidr_prefix = "24"
 
+k8s_oidc_issuer_url = "https://dex.svcs.kluster.example.com/dex"
+k8s_oidc_client_id = "dex-client-id"
+
 k8s_bootstrap_token = "generated.token"
 vsphere_vlan = "VLAN_LABEL"
 vsphere_resourcepool = "/vsphere/cluster/resource/pool"
-

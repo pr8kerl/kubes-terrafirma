@@ -1,0 +1,19 @@
+{{ $config := (datasource "config") }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: loginapp
+  namespace: auth
+data:
+  config.yaml: |
+    debug: false
+    client_id: "{{ $config.dex.clientId }}"
+    client_secret: {{ $config.dex.clientSecret }}
+    issuer_url: "https://{{ $config.dex.dnsRecord }}/dex"
+    issuer_root_ca: "/etc/ssl/ca.pem"
+    redirect_url: "https://{{ $config.loginapp.dnsRecord }}/callback"
+    listen: "http://0.0.0.0:5555"
+    disable_choices: false
+    extra_scopes: "groups"
+    app_name: "Kubernetes Auth"

@@ -1,0 +1,27 @@
+---
+clusterShortName: kluster
+clusterEnvironment: development
+
+dashboard:
+  dnsRecord: dashboard.svcs.kluster.example.com
+  oidcDiscoveryUrl: 'https://dex.svcs.kluster.example.com/dex/.well-known/openid-configuration'
+  redirectUri: 'https://dashboard.svcs.kluster.example.com/oauth2/callback'
+
+kuard:
+  dnsRecord: kuard.svcs.kluster.example.com
+
+dex:
+  dnsRecord: dex.svcs.kluster.example.com
+  clientId: 'dex-client-id'
+  clientSecret: 'VeryLongSecureString'
+  ldapServer: 'hostname:636'
+  ldapNoSsl: false
+  ldapSkipVerify: true
+  ldapBindDn: cn=bindme,OU=Users,dc=example,dc=com
+  ldapBindPasswd: SuperSecretSquirrelBindPassword
+  ldapUserBaseDn: ou=Users,dc=example,dc=com
+  ldapGroupBaseDn: ou=Groups,dc=example,dc=com
+
+loginapp:
+  dnsRecord: login.svcs.kluster.example.com
+  redirectUri: 'https://login.svcs.kluster.example.com/callback'

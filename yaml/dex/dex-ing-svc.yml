@@ -1,0 +1,36 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dex
+  namespace: auth
+spec:
+  ports:
+  - name: dex
+    port: 5556
+    protocol: TCP
+    targetPort: 5556
+  selector:
+    app: dex
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dex
+  namespace: auth
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    ingress.kubernetes.io/force-ssl-redirect: 'true'
+spec:
+  rules:
+    - host: {{ $config.dex.dnsRecord }}
+      http:
+        paths:
+          - backend:
+              serviceName: dex
+              servicePort: 5556
+            path: /
+  tls:
+    - hosts:
+        - {{ $config.dex.dnsRecord }}

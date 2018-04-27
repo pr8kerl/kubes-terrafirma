@@ -25,3 +25,6 @@ dex:
 loginapp:
   dnsRecord: login.svcs.kluster.example.com
   redirectUri: 'https://login.svcs.kluster.example.com/callback'
+
+traefik:
+  dnsRecord: traefik.svcs.kluster.example.com

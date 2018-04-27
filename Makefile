@@ -33,7 +33,11 @@ destroy-%:
 
 certs-%: 
 	@echo "+++ Running certificate setup for $(environment)"
-	$(shell) ./bin/certs.sh -e $(environment)
+	$(shell) ./bin/certs -e $(environment)
+
+install-%: 
+	@echo "+++ Installing base k8s components for $(environment)"
+	$(shell) ./bin/install $(clustername) $(environment)
 
 f5er-apps-add-%: 
 	@echo "+++ Adding f5 load balancer setup for apps $(clustername)-$(environment)"

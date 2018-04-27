@@ -14,13 +14,6 @@ It uses terraform and kubeadm.
 
 * build an esx template vm with docker, kubeadm, kubectl and kubelet installed. See [vm-base](vm-base.md) for CentOS 7 setup notes.
 
-* generate a kubeadm bootstrap token for nodes
-
-  ```
-  make token
-  ```
-  save the resulting token for the `k8s_bootstrap_token` input variable
-
 * update terraform input variables 
 
   ```
@@ -29,11 +22,24 @@ It uses terraform and kubeadm.
   vi build/global.tfvars  build/<environment name>.tfvars
   ```
 
+* generate a kubeadm bootstrap token for nodes
+
+  ```
+  make token
+  ```
+  save the resulting token for the `k8s_bootstrap_token` input variable
+
+* edit the csr input files found in **build/tls/** to match your environment
+
 * generate ca cert and other common keys/certs
 
   ```
   make certs-<environment name>
   ```
+
+* copy oidc-ca.pem to build/tls/oidc-ca.pem. As currently configured, kubeadm is expecting a CA file for the oidc provider.
+  This is only needed if using a non-trusted CA on your oidc provider endpoint (ie if your oidc server is private and posssibly hosted on-premise).
+  If not needed, remove the oidc-ca.pem step from **provision-masters.tf** as well as from kubeadm.yaml.
 
 * set some sensitive info as environment variables for terraform to pickup
 

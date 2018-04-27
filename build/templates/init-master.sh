@@ -9,7 +9,7 @@ kubeadm init --config=${k8s_kubeadm_config}
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 PEER_NAME=$(hostname)
-if [ "$PEER_NAME" == "${k8s_init_master}" ]
+if [ "$PEER_NAME" != "${k8s_init_master}" ]
 then
   echo "i am not the designated initialisation master - enough of me"
   exit 0

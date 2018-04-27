@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -ex
 
 echo args: $*
 
@@ -8,13 +8,13 @@ die()  { echo "ERROR: $1"; exit 1; }
 
 checkrc()  {
  rc=$1
- [[ $rc -ne 0 ]] && die "non-zero return code: $rc"
+ [ $rc -eq 0 ] || die "non-zero return code: $rc"
 }
 
 usage() {
   echo
   echo "Checks and creates CA and admin certificates for kubernetes cluster stack.
-usage: certs.sh -e <environment>
+usage: certs -e <environment>
     -e|--environment   the kubernetes cluster environment to work against
     "
   exit 64
@@ -22,6 +22,11 @@ usage: certs.sh -e <environment>
 
 genCA() {
   echo "genCA $environment"
+  cwd=`pwd`
+  cd ./build/tls/
+  cfssl gencert -initca ca-csr.json | cfssljson -bare ${environment}/ca
+  checkrc $?
+  cd $cwd
 }
 
 genAdmin() {

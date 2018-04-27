@@ -6,4 +6,4 @@ metadata:
   namespace: auth
 data:
   ca.pem: |
-{{ file.Read "oidc-ca.pem" | strings.Indent 4 }}
+{{ file.Read "build/tls/oidc-ca.pem" | strings.Indent 4 }}

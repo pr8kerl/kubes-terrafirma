@@ -38,6 +38,8 @@ spec:
             port: 9090
           initialDelaySeconds: 5
           timeoutSeconds: 30
+        args:
+          - "--heapster-host=heapster.kube-system.svc.cluster.local"
       - name: openresty-oidc
         image: myobplatform/openresty-oidc:1.0.0
         ports:

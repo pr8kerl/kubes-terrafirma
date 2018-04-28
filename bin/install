@@ -58,41 +58,14 @@ kubectl apply -f yaml/storage-class-thin.yaml
 echo set default StorageClass to thin
 kubectl patch storageclass thin --patch '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-echo 
-echo loading up traefik tls secret
-kubectl create secret tls traefik-terra-tls --cert=build/tls/${clustername}-${environment}.crt --key=build/tls/${clustername}-${environment}.key -n kube-system
-
 echo
 echo traefik
+kubectl create secret tls traefik-terra-tls --cert=build/tls/${clustername}-${environment}.crt --key=build/tls/${clustername}-${environment}.key -n kube-system
 gomplate -f yaml/traefik.yaml -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 kubectl rollout status ds/traefik-ingress-controller -n kube-system
 
 echo
-echo helm
-cat <<EOF | kubectl apply -f -
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: tiller
-  namespace: kube-system
-
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-    name: tiller-kube-system
-subjects:
-- kind: ServiceAccount
-  name: tiller
-  namespace: kube-system
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-EOF
-
-helm init --upgrade --tiller-namespace kube-system --service-account tiller
+echo helm for default namespace
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
@@ -118,38 +91,53 @@ EOF
 
 helm init --upgrade --tiller-namespace default --service-account tiller
 
+echo 
+echo additional namespaces
+kubectl create ns auth
+kubectl create ns logging
+
 echo
 echo deploy example kuard app 
 for f in ./yaml/kuard/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
 
-echo auth
-kubectl create ns auth
-
-echo
-echo installing oidc-roles for $clustername
-gomplate -f yaml/oidc-roles/template.yaml -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
-
 echo
 echo installing heapster for $clustername
 kubectl apply -f yaml/heapster/heapster.yaml
 
+echo 
+echo dex
+for f in ./yaml/dex/*.yml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/dex -n auth
+
 echo
-echo installing dashboard-oidc for $clustername
+echo dashboard-oidc
+gomplate -f yaml/oidc-roles/template.yaml -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 SECRET=`openssl rand -base64 32`
 echo secret=${SECRET} > ./.tmp
-
 kubectl create secret generic kube-dashboard-session-secret -n kube-system --from-env-file=./.tmp
-
 for f in ./yaml/dashboard-oidc/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
 kubectl rollout status deployment/kubernetes-dashboard-oidc -n kube-system
 
-for f in ./yaml/dex/*.yml; do
+echo
+echo kube-dns config
+for f in ./yaml/kube-dns/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
-kubectl rollout status deployment/dex -n auth
+kubectl rollout status deployment/kube-dns -n kube-system
+
+echo
+echo fluent-bit
+echo '{{ $config := (datasource "config") }} kubectl create secret generic fluent-bit-logging -n logging --from-literal=token={{ $config.logging.splunkToken }}' | gomplate -d config=yaml/params-${clustername}-${environment}.yaml | source /dev/stdin
+
+for f in ./yaml/fluent-bit/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status ds/fluent-bit -n logging
 
 echo all done

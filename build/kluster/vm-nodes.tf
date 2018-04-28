@@ -7,11 +7,9 @@
     "template" = "${var.vsphere_template}"
     "type" = "thin"
   }
-  "dns_servers" = ["10.60.4.83", "10.60.4.84"]
-  "dns_suffixes" = ["cluster.local", "myob.myobcorp.net"]
   "enable_disk_uuid" = true
   "folder" = "${vsphere_folder.cluster_folder.path}"
-  "memory" = 4096
+  "memory" = 8192
   "name" = "${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index}"
   "network_interface" = {
     "ipv4_address" = "${element(var.k8s_node_ips, count.index)}"

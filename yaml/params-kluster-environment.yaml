@@ -28,3 +28,16 @@ loginapp:
 
 traefik:
   dnsRecord: traefik.svcs.kluster.example.com
+
+logging:
+  splunkToken: 'bla-bla-bla-bla-bla'
+
+kubeDns:
+  internalDomain: "example.priv"
+  internalNameServers: 
+    - '192.168.100.1'
+    - '192.168.100.2'
+  upstreamNameServers:
+    - '8.8.8.8'
+    - '8.8.4.4'
+

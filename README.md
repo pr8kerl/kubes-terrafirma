@@ -68,6 +68,26 @@ It uses terraform and kubeadm.
   make destroy-<environment name>
   ```
 
+## What is where??
+
+What are all these directories??
+
+```
+.
+├── bin           # scripts used by make steps
+├── build         # terraform variable and state files are here
+│   ├── kluster   # terraform files
+│   ├── templates # templates parsed by terraform and installed on nodes
+│   └── tls       # cfssl csr and config files are here
+│       ├── environment # all generated certs/keys for an environment are dropped in here
+├── f5 # example f5er input files are here
+├── Makefile
+├── README.md
+├── vm-base.md
+└── yaml # all k8s yaml files for the **install-environment** make target
+```
+
+
 ## Load Balancer??
 
 You will probably want a load balancer to manage traffic to your ingress controller for your apps.

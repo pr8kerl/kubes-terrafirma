@@ -9,8 +9,6 @@
     "type" = "thin"
   }
 
-  "dns_servers" = "${var.k8s_public_network_dns_servers}"
-  "dns_suffixes" = ["cluster.local", "myob.myobcorp.net"]
   "enable_disk_uuid" = true
   "folder" = "${vsphere_folder.cluster_folder.path}"
   "memory" = 4096

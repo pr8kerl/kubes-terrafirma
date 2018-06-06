@@ -11,6 +11,9 @@
   "folder" = "${vsphere_folder.cluster_folder.path}"
   "memory" = 8192
   "name" = "${var.k8s_cluster_name}-${var.k8s_cluster_environment}-node${count.index}"
+
+  "dns_servers" = "${var.k8s_public_network_dns_servers}"
+  "dns_suffixes" = ["${var.internal_dns_domain}"]
   "network_interface" = {
     "ipv4_address" = "${element(var.k8s_node_ips, count.index)}"
     "ipv4_gateway" = "${var.k8s_public_network_gateway}"

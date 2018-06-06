@@ -63,7 +63,7 @@ data:
             # "(&(objectClass=person)(uid=<username>))".
             baseDN: {{ $config.dex.ldapUserBaseDn }}
             # Optional filter to apply when searching the directory.
-            #filter: "(sAMAccountName=*)"
+            filter: "(sAMAccountName=*)"
             # username attribute used for comparing user entries. This will be translated
             # and combine with the other filter as "(<attr>=<username>)".
             username: mail
@@ -95,7 +95,9 @@ data:
     staticClients:
     - id: kube-apiarist
       redirectURIs:
-      - '{{ $config.dashboard.redirectUri }}'
-      - '{{ $config.loginapp.redirectUri }}'
+      - {{ $config.dashboard.redirectUri }}
+      - {{ $config.loginapp.redirectUri }}
+      - {{ $config.prometheus.redirectUri }}
+      - {{ $config.grafana.redirectUri }}
       name: 'Kubernetes Api Access'
       secret: {{ $config.dex.clientSecret }}

@@ -8,7 +8,6 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
-  tls:
   rules:
   - host: {{ $config.kuard.dnsRecord }}
     http:

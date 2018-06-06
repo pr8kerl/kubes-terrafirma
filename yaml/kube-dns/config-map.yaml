@@ -1,0 +1,13 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns
+  namespace: kube-system
+data:
+  stubDomains: |
+    { "{{ $config.kubeDns.internalDomain }}": {{ $config.kubeDns.internalNameServers | data.ToJSON }} }
+  upstreamNameservers: |
+    {{ $config.kubeDns.upstreamNameServers | data.ToJSON }}
+

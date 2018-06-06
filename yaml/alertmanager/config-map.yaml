@@ -1,0 +1,64 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: prometheus
+    component: alertmanager
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: alertmanager-cm
+  namespace: kube-system
+data:
+  template: |-
+    global:
+      slack_api_url: {{ `{{ env.Getenv "SLACK_API_URL" }}` }}
+
+    receivers:
+    - name: 'devnull'
+    - name: slack-tr-pe-alerts
+      slack_configs:
+      - channel: {{ $config.alertmanager.receivers.slack.channel }}
+        pretext: '{{ printf "[%s]: " $config.clusterShortName }} {{ `{{ "{{ .GroupLabels.alertname }}" }}` }}'
+        title: '{{ `{{ "{{ (index .Alerts 0).Annotations.title }}" }}` }}'
+        text: '{{ `{{ "{{ range .Alerts }} {{ .Annotations.summary }}, {{ end }}" }}` }}'
+    {{- if $config.alertmanager.support.businessHours.enabled }}
+    - name: victorops-business-hours
+      victorops_configs:
+      - api_key: {{ `{{ env.Getenv "VICTOROPS_API_KEY" }}` }}
+        routing_key: "platformenablement"
+        entity_display_name: '{{ `{{ "{{ (index .Alerts 0).Annotations.title }}" }}` }}'
+        state_message: '{{ printf "[%s]: " $config.clusterShortName }}{{ `{{ "{{ .GroupLabels.alertname }}: {{ (index .Alerts 0).Annotations.title }} {{ \"\\n\" }} {{ range .Alerts }} {{ .Annotations.formattedSummary }} {{ \"\\n\" }} {{ end }}" }}` }}'
+    {{- end }}
+    {{- if $config.alertmanager.support.afterHours.enabled }}
+    - name: victorops-after-hours
+      victorops_configs:
+      - api_key: {{ `{{ env.Getenv "VICTOROPS_API_KEY" }}` }}
+        routing_key: "platformenablement24x7"
+        entity_display_name: '{{ `{{ "{{ (index .Alerts 0).Annotations.title }}" }}` }}'
+        state_message: '{{ printf "[%s]: " $config.clusterShortName }} {{ `{{ "{{ .GroupLabels.alertname }}: {{ (index .Alerts 0).Annotations.title }} {{ \"\\n\" }} {{ range .Alerts }} {{ .Annotations.formattedSummary }} {{ \"\\n\" }} {{ end }}" }}` }}'
+    {{- end }}
+    route:
+      group_by: [alertname,support]
+      group_wait: 20s
+      group_interval: 5m
+      {{- if $config.alertmanager.receivers.slack.enabled }}
+      receiver: slack-tr-pe-alerts
+      {{- end }}
+      repeat_interval: 3h
+      routes:
+      - receiver: 'devnull'
+        match:
+          receiver: 'devnull'
+        continue: false
+{{ if $config.alertmanager.support.businessHours.enabled -}}
+  {{ if $config.alertmanager.support.businessHours.routes -}}
+      {{ $config.alertmanager.support.businessHours.routes | data.ToYAML | indent 6 -}}
+  {{- end -}}
+{{- end -}}
+{{ if $config.alertmanager.support.afterHours.enabled -}}
+  {{ if $config.alertmanager.support.businessHours.routes -}}
+      {{ $config.alertmanager.support.afterHours.routes | data.ToYAML | indent 6 -}}
+  {{- end -}}
+{{- end -}}

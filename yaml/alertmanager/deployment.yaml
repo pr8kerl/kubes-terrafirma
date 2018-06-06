@@ -1,0 +1,75 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: prometheus
+    component: alertmanager
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: prometheus-alertmanager
+  namespace: kube-system
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      component: alertmanager
+      repo: ops-kube-monitoring
+  template:
+    metadata:
+      annotations:
+        checksum/config: '{{ file.Read "yaml/alertmanager/config-map.yaml" | crypto.SHA1 }}'
+      labels:
+        app: prometheus
+        component: alertmanager
+        repo: ops-kube-monitoring
+    spec:
+      serviceAccountName: prometheus-alertmanager-sa
+      containers:
+        - name: prometheus-alertmanager
+          image: "prom/alertmanager:v0.13.0"
+          args:
+            - --config.file=/etc/config/alertmanager.yml
+            - --storage.path=/data
+          ports:
+            - containerPort: 9093
+          readinessProbe:
+            httpGet:
+              path: /#/status
+              port: 9093
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: storage-volume
+              mountPath: "/data"
+              subPath: ""
+      initContainers:
+        - name: prometheus-alertmanager-init
+          image: hairyhenderson/gomplate
+          command: ['/gomplate', '-f', '/app/cm/alertmanager.tmpl','-o', '/etc/config/alertmanager.yml']
+          envFrom:
+            - secretRef:
+                name: alertmanager-secret
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: configmap-volume
+              mountPath: "/app/cm"
+      volumes:
+        - name: config-volume
+          emptyDir: {}
+        - name: configmap-volume
+          configMap:
+            name: alertmanager-cm
+            items:
+            - key: template
+              path: alertmanager.tmpl
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: prometheus-alertmanager-pvc

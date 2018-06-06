@@ -1,0 +1,18 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: grafana
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: grafana-pvc
+  namespace: kube-system
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: {{ $config.grafana.storageClass }}
+  resources:
+    requests:
+      storage: "1Gi"

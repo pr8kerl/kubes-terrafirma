@@ -21,7 +21,7 @@ metadata:
   namespace: auth
   annotations:
     kubernetes.io/ingress.class: traefik
-    ingress.kubernetes.io/force-ssl-redirect: 'true'
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
 spec:
   rules:
     - host: {{ $config.dex.dnsRecord }}
@@ -32,5 +32,4 @@ spec:
               servicePort: 5556
             path: /
   tls:
-    - hosts:
-        - {{ $config.dex.dnsRecord }}
+    - secretName: traefik-terra-tls

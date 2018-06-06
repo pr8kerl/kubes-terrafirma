@@ -1,0 +1,23 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: prometheus
+    component: server
+    repo: kubes-terrafirma
+    deployed-with: kubectl
+  name: prometheus-node-exporter-role
+rules:
+  - apiGroups:
+    - "*"
+    resources:
+    - "*"
+    verbs:
+    - get
+    - list
+    - watch
+  - nonResourceURLs:
+    - "*"
+    verbs:
+    - get

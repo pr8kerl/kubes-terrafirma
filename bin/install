@@ -7,12 +7,45 @@ usage() {
   echo
   echo "Performs an number of basic steps to configure a k8s cluster.
 
-usage: post-deploy.sh <clustername> <environment>
+usage: install <clustername> <environment>
 
     "
   exit 1
 }
 
+checkForSecret() {
+  sekret=$1
+  echo checking for existence of secret $sekret
+  $dcr kubectl get secret -n kube-system $sekret
+  rc=$?
+  [[ $rc -eq 0 ]] && echo we have a secret!
+  return $rc
+}
+
+mkGrafanaSecret() {
+
+  sekret=`openssl rand -base64 32`
+  echo creating secret grafana-secret
+  $dcr kubectl create secret generic grafana-secret -n kube-system --from-literal=grafana-admin-password=${sekret} --from-literal=grafana-admin-user=admin
+  rc=$?
+  [[ $rc -eq 0 ]] && echo we now have a grafana secret!
+  return $rc
+
+}
+
+mkAlertManagerSecret() {
+
+  echo creating secret alertmanager-secret
+  $dcr kubectl create secret generic alertmanager-secret -n kube-system \
+    --from-literal=SLACK_API_URL=${SLACK_API_URL} \
+    --from-literal=VICTOROPS_APIKEY=${VICTOROPS_APIKEY}
+  rc=$?
+  [[ $rc -eq 0 ]] && echo we now have an alertmanager secret!
+  return $rc
+
+}
+
+# off we go...
 [[ -z "${clustername}" ]] && usage
 [[ -z "${environment}" ]] && usage
 
@@ -140,4 +173,34 @@ for f in ./yaml/fluent-bit/*.yaml; do
 done
 kubectl rollout status ds/fluent-bit -n logging
 
+echo
+echo alertmanager
+checkForSecret alertmanager-secret || mkAlertManagerSecret
+for f in ./yaml/alertmanager/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/prometheus-alertmanager -n kube-system
+
+echo
+echo prometheus
+for f in ./yaml/prometheus/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/prometheus-server -n kube-system
+
+echo
+echo grafana
+checkForSecret grafana-secret || mkGrafanaSecret
+for f in ./yaml/grafana/*.yaml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/grafana -n kube-system
+
+echo 
+echo node-exporter
+cat yaml/node-exporter/*.yaml|kubectl apply -f -
+
+echo 
+echo kube-state-metrics
+cat yaml/kube-state-metrics/*.yaml|kubectl apply -f -
 echo all done

@@ -41,3 +41,31 @@ kubeDns:
     - '8.8.8.8'
     - '8.8.4.4'
 
+prometheus:
+  storageClass: 'thin'
+prometheus:
+  host: prometheus.svcs.kluster.example.com
+  oidcDiscoveryUrl: 'https://dex.svcs.kluster.example.com/dex/.well-known/openid-configuration'
+  redirectUri: https://prometheus.svcs.kluster.example.com/oauth/callback
+  storageClass: 'thin'
+
+grafana:
+  host: monitoring.svcs.kluster.example.com
+  oauthName: 'oauth login'
+  auth_url: https://dex.svcs.kluster.example.com/dex/auth
+  token_url: https://dex.svcs.kluster.example.com/dex/token
+  redirectUri: 'https://monitoring.svcs.kluster.example.com/login/generic_oauth'
+  storageClass: 'thin'
+
+alertmanager:
+  enabled: true
+  storageClass: 'thin'
+  support:
+    businessHours:
+      enabled: false
+    afterHours:
+      enabled: false
+  receivers:
+    slack:
+      channel: '#slack-alerts-channel'
+      enabled: true

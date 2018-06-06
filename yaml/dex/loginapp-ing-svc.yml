@@ -33,5 +33,4 @@ spec:
               servicePort: 5555
             path: /
   tls:
-    - hosts:
-        - {{ $config.loginapp.dnsRecord }}
+    - secretName: traefik-terra-tls

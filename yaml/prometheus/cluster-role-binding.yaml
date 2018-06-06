@@ -1,0 +1,18 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: prometheus
+    component: server
+    repo: ops-kube-monitoring
+    deployed-with: kubectl
+  name: prometheus-server-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-server-sa
+    namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-server-role

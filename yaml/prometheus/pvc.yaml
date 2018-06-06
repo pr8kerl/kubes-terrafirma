@@ -1,0 +1,20 @@
+{{ $config := (datasource "config") }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: prometheus
+    component: server
+    repo: ops-kube-monitoring
+    deployed-with: kubectl
+  name: prometheus-server-pvc
+  namespace: kube-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ $config.prometheus.storageClass }}
+  resources:
+    requests:
+      storage: "100Gi"

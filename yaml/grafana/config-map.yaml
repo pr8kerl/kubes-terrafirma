@@ -1,0 +1,46 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: grafana
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: grafana-cm
+  namespace: kube-system
+data:
+  grafana.ini: |
+    [paths]
+    data = /var/lib/grafana/data
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+
+    [server]
+    http_port = 3001
+    root_url = https://{{ $config.grafana.host }}
+
+    [snapshots]
+    external_enabled = false
+
+    [log]
+    mode = console
+    level = info
+
+    [dashboards.json]
+    enabled = true
+    path = /var/lib/grafana/dashboards
+
+    [auth.generic_oauth]
+    name = {{ $config.grafana.oauthName }}
+    enabled = true
+    allow_sign_up = true
+    client_id = {{ $config.dex.clientId }}
+    client_secret = {{ $config.dex.clientSecret }}
+    scopes = openid email groups
+    auth_url = {{ $config.grafana.auth_url }}
+    token_url = {{ $config.grafana.token_url }}
+    api_url = 
+    team_ids =
+    allowed_organizations =
+    tls_client_ca = /etc/pki/tls/certs/oidc-ca.pem

@@ -10,6 +10,7 @@ vsphere_cluster = "cluster"
 vsphere_template = "/vsphere/vm/template/kubernetes-base-vm-1.9-x86_64"
 vsphere_folderpath = "kubernetes"
 
+internal_dns_domain = "local.domain"
 k8s_public_network_dns_servers = [ "192.168.1.50", "192.168.1.51" ]
 k8s_service_cidr = "10.96.0.0/12"
 k8s_podnetwork = "canal"

@@ -14,7 +14,7 @@ spec:
       labels:
         app: dex
       annotations:
-        checksum/config: '{{ file.Read "yaml/dex/00-dex-cm.yml" | regexp.Replace "\\s" "" | base64.Encode | printf "%s" }}'
+        checksum/config: '{{ crypto.SHA1 (file.Read "yaml/dex/00-dex-cm.yml") }}'
     spec:
       serviceAccountName: dex
       containers:

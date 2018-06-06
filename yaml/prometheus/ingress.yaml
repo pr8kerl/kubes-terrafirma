@@ -3,20 +3,19 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: kubernetes-dashboard-oidc
+  name: prometheus-server-oidc
   namespace: kube-system
   annotations:
     kubernetes.io/ingress.class: traefik
   labels:
-    app: kubernetes-dashboard-oidc
+    app: prometheus-server-oidc
     repo: ops-kube-system
     deployed-with: gomplate
 spec:
   rules:
-  - host: {{ $config.dashboard.dnsRecord }}
+  - host: {{ $config.prometheus.host }}
     http:
       paths:
       - backend:
-          serviceName: kubernetes-dashboard-oidc
+          serviceName: prometheus-server-svc
           servicePort: 80
-  

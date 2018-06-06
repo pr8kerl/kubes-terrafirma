@@ -1,0 +1,100 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: prometheus
+    component: server
+    repo: ops-kube-monitoring
+    deployed-with: kubectl
+  name: prometheus-server
+  namespace: kube-system
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      component: server
+      repo: ops-kube-monitoring
+  template:
+    metadata:
+      annotations:
+        checksum/config: '{{ crypto.SHA1 (file.Read "yaml/dex/00-dex-cm.yml") }}'
+      labels:
+        app: prometheus
+        component: server
+        repo: ops-kube-monitoring
+    spec:
+      securityContext:
+        runAsUser: 0
+      serviceAccountName: prometheus-server-sa
+      containers:
+        - name: prometheus-server-configmap-reload
+          image: jimmidyson/configmap-reload:v0.1
+          imagePullPolicy: IfNotPresent
+          args:
+            - --volume-dir=/etc/config
+            - --webhook-url=http://localhost:9090/-/reload
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+              readOnly: true
+        - name: proxy
+          image: quay.io/gambol99/keycloak-proxy:latest
+          imagePullPolicy: Always
+          args:
+            - --discovery-url={{ $config.prometheus.oidcDiscoveryUrl }}
+            - --client-id={{ $config.dex.clientId }}
+            - --client-secret={{ $config.dex.clientSecret }}
+            - --listen=0.0.0.0:9090
+            - --enable-logging=true
+            - --enable-json-logging=true
+            - --upstream-url=http://127.0.0.1:9091
+            - --skip-openid-provider-tls-verify
+            - --redirection-url={{ $config.prometheus.redirectUri }}
+            - --resources=uri=/*
+          ports:
+            - containerPort: 9090
+        - name: prometheus-server
+          image: prom/prometheus:v2.1.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/etc/config/prometheus.yml
+            - --storage.tsdb.path=/data
+            - --storage.tsdb.retention=60d
+            - --web.console.libraries=/etc/prometheus/console_libraries
+            - --web.console.templates=/etc/prometheus/consoles
+            - --web.enable-lifecycle
+            - --web.listen-address=0.0.0.0:9091
+          ports:
+            - containerPort: 9091
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 9091
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 6Gi
+            requests:
+              cpu: 1000m
+              memory: 4Gi
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: storage-volume
+              mountPath: /data
+              subPath: ""
+      terminationGracePeriodSeconds: 300
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-server-cm
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: prometheus-server-pvc

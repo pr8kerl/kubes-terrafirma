@@ -1,8 +1,9 @@
 ---
-version: '3'
-services:
-  base: &base
-    build: .
+version: '2.3'
+
+x-base: &base
+    build: 
+      context: ./dc
     volumes:
       - ./build:/app
       - /tmp:/tmp
@@ -13,6 +14,7 @@ services:
     tty: true
     working_dir: /app
 
+services:
   terraform:
     image: hashicorp/terraform:0.9.11
     volumes:
@@ -27,8 +29,8 @@ services:
       TF_VAR_vsphere_password: ${TF_VAR_vsphere_password}
 
   kubeadm:
-    build:
-      context: .
+    build: 
+      context: ./dc
       dockerfile: Dockerfile.kubeadm
 
   tls:

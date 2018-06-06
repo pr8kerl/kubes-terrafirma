@@ -1,0 +1,19 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: prometheus
+    component: alertmanager
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: prometheus-alertmanager-pvc
+  namespace: kube-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ $config.prometheus.storageClass }}
+  resources:
+    requests:
+      storage: "2Gi"

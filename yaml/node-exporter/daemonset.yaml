@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  labels:
+    app: prometheus
+    component: node-exporter
+    repo: kubes-terrafirma
+    deployed-with: kubectl
+  name: prometheus-node-exporter
+  namespace: kube-system
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: prometheus
+      component: node-exporter
+      repo: ops-kube-monitoring
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        component: node-exporter
+        repo: ops-kube-monitoring
+    spec:
+      serviceAccountName: prometheus-node-exporter-sa
+      containers:
+        - name: prometheus-node-exporter
+          image: prom/node-exporter:v0.15.2
+          args:
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+          ports:
+            - name: metrics
+              containerPort: 9100
+              hostPort: 9100
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly:  true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys

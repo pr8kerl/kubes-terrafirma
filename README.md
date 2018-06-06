@@ -81,9 +81,8 @@ What are all these directories??
 │   └── tls       # cfssl csr and config files are here
 │       ├── environment # all generated certs/keys for an environment are dropped in here
 ├── f5 # example f5er input files are here
-├── Makefile
 ├── README.md
-├── vm-base.md
+├── vm-base.md # description of dependencies pre-installed on vm image
 └── yaml # all k8s yaml files for the **install-environment** make target
 ```
 

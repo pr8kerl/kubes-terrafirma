@@ -1,0 +1,103 @@
+{{ $config := (datasource "config") }}
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+    deployed-with: gomplate
+  name: grafana
+  namespace: kube-system
+spec:
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: "100%"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+      repo: kubes-terrafirma
+  template:
+    metadata:
+      annotations:
+        checksum/dashboards-config:  '{{ crypto.SHA1 (file.Read "yaml/grafana/dashboards-config-map.yaml") }}'
+        checksum/datasources-config:  '{{ crypto.SHA1 (file.Read "yaml/grafana/datasources-config-map.yaml") }}'
+        checksum/dbsources-config:  '{{ crypto.SHA1 (file.Read "yaml/grafana/dbsources-config-map.yaml") }}'
+      labels:
+        app: grafana
+        repo: kubes-terrafirma
+    spec:
+      containers:
+        - name: proxy
+          image: quay.io/gambol99/keycloak-proxy:latest
+          imagePullPolicy: Always
+          args:
+            - --discovery-url=https://dex.svcs.terra.platform.myobdev.com/dex/.well-known/openid-configuration
+            - --client-id=kube-apiarist
+            - --client-secret=MMy9W3xbdWS7LMYC2AQiTZbW6cb43uUWdtCI54FKro0
+            - --listen=0.0.0.0:3000
+            - --enable-logging=true
+            - --enable-json-logging=true
+            - --upstream-url=http://127.0.0.1:3001
+            - --skip-openid-provider-tls-verify
+            - --redirection-url=https://monitoring.svcs.terra.platform.myobdev.com/login/generic_oauth
+            - --resources=uri=/*
+          ports:
+            - containerPort: 3000
+        - name: grafana
+          image: "grafana/grafana:5.1.3"
+          env:
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: "Admin"
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "true"
+            - name: GF_AUTH_DISABLE_SIGNOUT_FORM
+              value: "true"
+          ports:
+            - containerPort: 3001
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3001
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 750m
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 300Mi
+          volumeMounts:
+            - name: config-volume
+              mountPath: "/etc/grafana"
+            - name: dashboard-volume
+              mountPath: "/var/lib/grafana/dashboards"
+            - name: datasource-volume
+              mountPath: "/etc/grafana/provisioning/datasources"
+            - name: dbsources-volume
+              mountPath: "/etc/grafana/provisioning/dashboards"
+            - name: oidc-ca-volume
+              mountPath: "/etc/pki/tls/certs/oidc-ca.pem"
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config-volume
+          configMap:
+            name: grafana-cm
+        - name: dashboard-volume
+          configMap:
+            name: grafana-dashboards
+        - name: datasource-volume
+          configMap:
+            name: grafana-datasources
+        - name: dbsources-volume
+          configMap:
+            name: grafana-dbsources
+        - name: oidc-ca-volume
+          hostPath:
+            path: /etc/pki/tls/certs/oidc-ca.pem
+            type: File
+

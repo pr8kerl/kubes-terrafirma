@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: grafana
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: grafana-datasources
+  namespace: kube-system
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+
+    datasources:
+      - name: prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server-svc.kube-system:80
+        isDefault: true

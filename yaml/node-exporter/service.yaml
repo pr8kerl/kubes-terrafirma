@@ -1,0 +1,25 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+  labels:
+    app: prometheus
+    component: node-exporter
+    repo: kubes-terrafirma
+    deployed-with: kubectl
+  name: prometheus-node-exporter-sa
+  namespace: kube-system
+spec:
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: 9100
+      protocol: TCP
+      targetPort: 9100
+  selector:
+    app: prometheus
+    component: node-exporter
+    repo: ops-kube-monitoring
+  type: ClusterIP

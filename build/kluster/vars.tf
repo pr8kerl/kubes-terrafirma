@@ -127,6 +127,11 @@ variable "k8s_node_ips" {
   description = "ip addresses of k8s nodes"
 }
 
+variable "internal_dns_domain" {
+  type        = "string"
+  description = "internal dns domain for host resolv.conf"
+}
+
 variable "k8s_public_network_dns_servers" {
   type        = "list"
   description = "ip addresses of dns servers used on k8s nodes"

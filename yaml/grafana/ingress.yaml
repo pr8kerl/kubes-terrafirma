@@ -1,0 +1,22 @@
+{{ $config := (datasource "config") }}
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: traefik
+  labels:
+    app: grafana
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: grafana-ingress
+  namespace: kube-system
+spec:
+  rules:
+    - host: {{ $config.grafana.host }}
+      http:
+        paths:
+          - backend:
+              serviceName: grafana-svc
+              servicePort: 80

@@ -1,0 +1,23 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: prometheus
+    component: alertmanager
+    repo: kubes-terrafirma
+    deployed-with: gomplate
+  name: prometheus-alertmanager-cluster-role
+rules:
+  - apiGroups:
+    - "*"
+    resources:
+    - "*"
+    verbs:
+    - get
+    - list
+    - watch
+  - nonResourceURLs:
+    - "*"
+    verbs:
+    - get

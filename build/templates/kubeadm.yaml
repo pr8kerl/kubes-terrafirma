@@ -19,6 +19,7 @@ apiServerExtraArgs:
   oidc-ca-file: ${k8s_oidc_ca_file}
   endpoint-reconciler-type: lease
   requestheader-allowed-names:
+  cloud-config: /etc/vsphere/config
 etcd:
   endpoints:
   - https://${k8s_master_ip0}:2379

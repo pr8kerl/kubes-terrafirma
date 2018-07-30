@@ -46,7 +46,7 @@ spec:
           image: quay.io/gambol99/keycloak-proxy:latest
           imagePullPolicy: Always
           args:
-            - --discovery-url={{ $config.prometheus.oidcDiscoveryUrl }}
+            - --discovery-url={{ $config.dex.oidcDiscoveryUrl }}
             - --client-id={{ $config.dex.clientId }}
             - --client-secret={{ $config.dex.clientSecret }}
             - --listen=0.0.0.0:9090
@@ -55,6 +55,7 @@ spec:
             - --upstream-url=http://127.0.0.1:9091
             - --skip-openid-provider-tls-verify
             - --redirection-url={{ $config.prometheus.redirectUri }}
+            - --resources=uri=/api*|methods=POST,PUT,DELETE,PATCH,TRACE,OPTIONS
             - --resources=uri=/*
           ports:
             - containerPort: 9090

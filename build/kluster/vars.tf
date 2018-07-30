@@ -73,13 +73,7 @@ variable "etcd_version" {
 variable "k8s_version" {
   type        = "string"
   description = "version of kubernetes hyperkube to use"
-  default = "v1.9.2"
-}
-
-variable "k8s_version_major" {
-  type        = "string"
-  description = "major version of kubernetes hyperkube to use"
-  default = "1.8"
+  default = "v1.11.1"
 }
 
 variable "k8s_cluster_name" {

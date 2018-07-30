@@ -6,8 +6,12 @@
 yum install docker
 systemctl enable docker
 
-# configure docker cgroupfs cgroupdriver and disable mount propagation on kubelet
+# configure docker cgroupfs cgroupdriver
+
 sed -i -e 's/systemd/cgroupfs/g' /etc/systemd/system/multi-user.target.wants/docker.service
+
+# ensure vsphere cloud provider is set
+# cadvisor port is also re-enabled - kubeadm disables it by default
 cat << EOF > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 [Service]
 Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
@@ -15,7 +19,7 @@ Environment="KUBELET_SYSTEM_PODS_ARGS=--pod-manifest-path=/etc/kubernetes/manife
 Environment="KUBELET_NETWORK_ARGS=--network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin"
 Environment="KUBELET_DNS_ARGS=--cluster-dns=10.96.0.10 --cluster-domain=cluster.local"
 Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"
-Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
+Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=4194"
 Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=systemd"
 Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
 Environment="KUBELET_EXTRA_ARGS=--cloud-provider=vsphere --cloud-config=/etc/kubernetes/vsphere.conf"
@@ -81,4 +85,7 @@ dbus-uuidgen --ensure=/etc/machine-id
 # enable vmware host timesync
 vmware-toolbox-cmd timesync enable
 vmware-toolbox-cmd timesync status
+
+# cache control plane images
+kubeadm config images pull
 ```

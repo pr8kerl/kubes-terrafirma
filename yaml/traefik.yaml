@@ -70,6 +70,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: traefik-ingress-controller
+  namespace: kube-system
 
 ---
 kind: DaemonSet

@@ -17,7 +17,7 @@ data:
     plugins = /var/lib/grafana/plugins
 
     [server]
-    http_port = 3001
+    http_port = 3000
     root_url = https://{{ $config.grafana.host }}
 
     [snapshots]
@@ -31,16 +31,10 @@ data:
     enabled = true
     path = /var/lib/grafana/dashboards
 
-    [auth.generic_oauth]
-    name = {{ $config.grafana.oauthName }}
+    [auth]
+    disable_login_form = true
+
+    [auth.anonymous]
     enabled = true
-    allow_sign_up = true
-    client_id = {{ $config.dex.clientId }}
-    client_secret = {{ $config.dex.clientSecret }}
-    scopes = openid email groups
-    auth_url = {{ $config.grafana.auth_url }}
-    token_url = {{ $config.grafana.token_url }}
-    api_url = 
-    team_ids =
-    allowed_organizations =
-    tls_client_ca = /etc/pki/tls/certs/oidc-ca.pem
+    org_role = Viewer
+

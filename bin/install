@@ -13,10 +13,18 @@ usage: install <clustername> <environment>
   exit 1
 }
 
+die() {
+  msg=$*
+  [ -z "$msg" ] && msg="we ran into an issue - please polish the mirror"
+  echo error: $msg
+  exit 99
+}
+
 checkForSecret() {
   sekret=$1
+  ns=$2
   echo checking for existence of secret $sekret
-  $dcr kubectl get secret -n kube-system $sekret
+  $dcr kubectl get secret -n $ns $sekret
   rc=$?
   [[ $rc -eq 0 ]] && echo we have a secret!
   return $rc
@@ -36,9 +44,10 @@ mkGrafanaSecret() {
 mkAlertManagerSecret() {
 
   echo creating secret alertmanager-secret
+  [ -z "$SLACK_API_URL" -o -z "$VICTOROPS_API_KEY" ] && die "please set env vars SLACK_API_URL and VICTOROPS_API_KEY for alertmanager"
   $dcr kubectl create secret generic alertmanager-secret -n kube-system \
     --from-literal=SLACK_API_URL=${SLACK_API_URL} \
-    --from-literal=VICTOROPS_APIKEY=${VICTOROPS_APIKEY}
+    --from-literal=VICTOROPS_API_KEY=${VICTOROPS_API_KEY}
   rc=$?
   [[ $rc -eq 0 ]] && echo we now have an alertmanager secret!
   return $rc
@@ -93,7 +102,7 @@ kubectl patch storageclass thin --patch '{"metadata": {"annotations":{"storagecl
 
 echo
 echo traefik
-kubectl create secret tls traefik-terra-tls --cert=build/tls/${clustername}-${environment}.crt --key=build/tls/${clustername}-${environment}.key -n kube-system
+checkForSecret traefik-${clustername}-tls kube-system || kubectl create secret tls traefik-${clustername}-tls --cert=build/tls/${clustername}-${environment}.crt --key=build/tls/${clustername}-${environment}.key -n kube-system
 gomplate -f yaml/traefik.yaml -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 kubectl rollout status ds/traefik-ingress-controller -n kube-system
 
@@ -129,6 +138,14 @@ echo additional namespaces
 kubectl create ns auth
 kubectl create ns logging
 
+echo 
+echo dex
+checkForSecret traefik-${clustername}-tls auth || kubectl create secret tls traefik-${clustername}-tls --cert=build/tls/${clustername}-${environment}.crt --key=build/tls/${clustername}-${environment}.key -n auth
+for f in ./yaml/dex/*.yml; do
+  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
+done
+kubectl rollout status deployment/dex -n auth
+
 echo
 echo deploy example kuard app 
 for f in ./yaml/kuard/*.yaml; do
@@ -136,38 +153,32 @@ for f in ./yaml/kuard/*.yaml; do
 done
 
 echo
-echo installing heapster for $clustername
-kubectl apply -f yaml/heapster/heapster.yaml
-
-echo 
-echo dex
-for f in ./yaml/dex/*.yml; do
-  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
-done
-kubectl rollout status deployment/dex -n auth
-
-echo
 echo dashboard-oidc
 gomplate -f yaml/oidc-roles/template.yaml -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
-SECRET=`openssl rand -base64 32`
-echo secret=${SECRET} > ./.tmp
-kubectl create secret generic kube-dashboard-session-secret -n kube-system --from-env-file=./.tmp
+checkForSecret kube-dashboard-session-secret kube-system
+rc=$?
+if [ $rc ]
+then
+  echo create kube-dashboard-session-secret
+  SECRET=`openssl rand -base64 32`
+  echo secret=${SECRET} > ./.tmp
+  kubectl create secret generic kube-dashboard-session-secret -n kube-system --from-env-file=./.tmp
+fi
 for f in ./yaml/dashboard-oidc/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
-done
+  done
 kubectl rollout status deployment/kubernetes-dashboard-oidc -n kube-system
 
 echo
-echo kube-dns config
-for f in ./yaml/kube-dns/*.yaml; do
-  gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
-done
-kubectl rollout status deployment/kube-dns -n kube-system
-
-echo
 echo fluent-bit
-echo '{{ $config := (datasource "config") }} kubectl create secret generic fluent-bit-logging -n logging --from-literal=token={{ $config.logging.splunkToken }}' | gomplate -d config=yaml/params-${clustername}-${environment}.yaml | source /dev/stdin
-
+checkForSecret fluent-bit-logging logging
+rc=$?
+echo rc: $rc
+if [ $rc ]
+then
+  echo creating fluent-bit-logging secret
+  echo '{{ $config := (datasource "config") }} kubectl create secret generic fluent-bit-logging -n logging --from-literal=token={{ $config.logging.splunkToken }}' | gomplate -d config=yaml/params-${clustername}-${environment}.yaml | source /dev/stdin
+fi
 for f in ./yaml/fluent-bit/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
@@ -175,7 +186,7 @@ kubectl rollout status ds/fluent-bit -n logging
 
 echo
 echo alertmanager
-checkForSecret alertmanager-secret || mkAlertManagerSecret
+checkForSecret alertmanager-secret kube-system|| mkAlertManagerSecret
 for f in ./yaml/alertmanager/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
@@ -190,7 +201,7 @@ kubectl rollout status deployment/prometheus-server -n kube-system
 
 echo
 echo grafana
-checkForSecret grafana-secret || mkGrafanaSecret
+checkForSecret grafana-secret kube-system|| mkGrafanaSecret
 for f in ./yaml/grafana/*.yaml; do
   gomplate -f $f -d config=yaml/params-${clustername}-${environment}.yaml | kubectl apply -f -
 done
@@ -204,3 +215,12 @@ echo
 echo kube-state-metrics
 cat yaml/kube-state-metrics/*.yaml|kubectl apply -f -
 echo all done
+
+echo
+echo installing metrics-server for $clustername
+cat yaml/metrics-server/*.yaml|kubectl apply -f -
+
+echo
+echo installing custom-metrics-server for $clustername
+cat yaml/custom-metrics-api/*.yaml|kubectl apply -f -
+

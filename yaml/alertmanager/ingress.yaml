@@ -8,16 +8,17 @@ metadata:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/redirect-entry-point: https
   labels:
-    app: grafana
+    app: prometheus
+    component: alertmanager
     repo: kubes-terrafirma
     deployed-with: gomplate
-  name: grafana-ingress
+  name: prometheus-alertmanager-ingress
   namespace: kube-system
 spec:
   rules:
-    - host: {{ $config.grafana.host }}
+    - host: {{ $config.alertmanager.host }}
       http:
         paths:
           - backend:
-              serviceName: grafana-svc
+              serviceName: prometheus-alertmanager-svc
               servicePort: 80

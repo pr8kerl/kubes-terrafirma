@@ -12,14 +12,14 @@ apiServerCertSANs:
   - ${k8s_master_ip2}
   - ${k8s_master_lb_hostname}
 apiServerExtraArgs:
-  oidc-issuer-url: ${k8s_oidc_issuer_url}
-  oidc-client-id: ${k8s_oidc_client_id}
-  oidc-username-claim: ${k8s_oidc_username_claim}
-  oidc-groups-claim: ${k8s_oidc_groups_claim}
-  oidc-ca-file: ${k8s_oidc_ca_file}
   endpoint-reconciler-type: lease
   requestheader-allowed-names:
   cloud-config: /etc/vsphere/config
+  enable-admission-plugins: "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,NodeRestriction,Priority"
+controllerManagerExtraArgs:
+  horizontal-pod-autoscaler-use-rest-clients: true
+  horizontal-pod-autoscaler-downscale-delay: 5m0s
+  horizontal-pod-autoscaler-upscale-delay: 2m0s
 etcd:
   endpoints:
   - https://${k8s_master_ip0}:2379

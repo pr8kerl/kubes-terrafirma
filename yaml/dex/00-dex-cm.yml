@@ -98,6 +98,6 @@ data:
       - {{ $config.dashboard.redirectUri }}
       - {{ $config.loginapp.redirectUri }}
       - {{ $config.prometheus.redirectUri }}
-      - {{ $config.grafana.redirectUri }}
+      - {{ $config.prometheus.redirectUri }}/oauth/callback
       name: 'Kubernetes Api Access'
       secret: {{ $config.dex.clientSecret }}

@@ -47,7 +47,7 @@ data:
               client_secret = os.getenv("OIDC_CLIENT_SECRET"),
               redirect_uri_path = "/oauth2/callback",
               ssl_verify = "no",
-              discovery = "{{ $config.dashboard.oidcDiscoveryUrl }}",
+              discovery = "{{ $config.dex.oidcDiscoveryUrl }}",
               scope = "openid email profile groups",
               expiry_claim = "exp"
             }
